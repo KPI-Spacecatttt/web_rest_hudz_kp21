@@ -1,0 +1,66 @@
+# Build results
+[Dd]ebug/
+[Rr]elease/
+[Aa]ssets/
+[Bb]in/
+[Oo]bj/
+[Ll]ogs/
+[Ll]og/
+
+# Visual Studio files
+.vs/
+.vscode/
+*.sln.docstates
+*.user
+*.suo
+*.userprefs
+*.ide
+
+# Rider files
+.idea/
+*.sln.iml
+
+# Visual Studio Code settings
+.vscode/
+
+# DotNet specific files
+project.lock.json
+project.fragment.lock.json
+*.nuspec
+*.nupkg
+*.snupkg
+*.deps.json
+*.dll
+*.pdb
+*.exe
+*.app
+*.mdb
+*.so
+
+# Test results
+TestResults/
+*.trx
+
+# User-specific files
+*.userprefs
+
+# Package files
+packages/
+*.nupkg
+*.snupkg
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.log
+
+# Configuration files
+appsettings*.json
+
+# Other files
+*.db
+*.cache
+*.DS_Store
+*.swp
+*.sublime-workspace
