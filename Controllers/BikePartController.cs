@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
+using web_rest_hudz_kp21.Database;
 using web_rest_hudz_kp21.Models;
+using web_rest_hudz_kp21.Models.DTOs;
 
 namespace web_rest_hudz_kp21.Controllers
 {
@@ -9,13 +12,16 @@ namespace web_rest_hudz_kp21.Controllers
     [Route("api/[controller]")]
     public class BikePartController : ControllerBase
     {
-        private static List<BikePart> bikeParts = [
-            new BikePart(1, "Wheel", "Aluminum", "SRAM", 20.5f, 20),
-            new BikePart(2, "Brake", "Steel", "Shimano", 10.8f, 50),
-            new BikePart(3, "Handlebar", "Carbon", "Shimano", 13.2f, 30),
-            new BikePart(4, "Saddle", "Leather", "Brooks England", 43.3f, 15),
-            new BikePart(5, "Chain", "Steel", "SRAM", 19.5f, 100)
-        ];
+        private readonly IRepository<BikePart> _bikePartRepository;
+        private readonly IMapper _mapper;
+
+        public BikePartController(
+            IRepository<BikePart> bikePartRepository,
+            IMapper mapper)
+        {
+            _bikePartRepository = bikePartRepository;
+            _mapper = mapper;
+        }
 
         /// <summary>
         /// Retrieves a list of all available bike parts.
@@ -27,9 +33,10 @@ namespace web_rest_hudz_kp21.Controllers
         /// Successfully retrieved the list of bike parts.
         /// </response>
         [HttpGet]
-        public ActionResult<IEnumerable<BikePart>> GetAllBikeParts()
+        public ActionResult<IEnumerable<BikePartSummaryDTO>> GetAllBikeParts()
         {
-            return Ok(bikeParts);
+            var bikeParts = _bikePartRepository.GetAll();
+            return Ok(_mapper.Map<IEnumerable<BikePartSummaryDTO>>(bikeParts));
         }
 
         /// <summary>
@@ -48,7 +55,7 @@ namespace web_rest_hudz_kp21.Controllers
         [HttpGet("{id}")]
         public ActionResult<BikePart> GetBikePartById(int id)
         {
-            var bikePart = bikeParts.FirstOrDefault(bp => bp.PartId == id);
+            var bikePart = _bikePartRepository.GetById(id);
             if (bikePart is null)
             {
                 return NotFound();
@@ -59,7 +66,7 @@ namespace web_rest_hudz_kp21.Controllers
         /// <summary>
         /// Adds a new bike part to the collection.
         /// </summary>
-        /// <param name="newBikePart">
+        /// <param name="bikePartDTO">
         /// The new bike part object to add.
         /// </param>
         /// <returns>
@@ -67,13 +74,15 @@ namespace web_rest_hudz_kp21.Controllers
         /// </returns>
         /// <response code="201">Successfully created the bike part.</response>
         [HttpPost]
-        public ActionResult<BikePart> AddBikePart(BikePart newBikePart)
+        public ActionResult<BikePart> AddBikePart(BikePartDTO bikePartDTO)
         {
-            bikeParts.Add(newBikePart);
+            BikePart bikePart = _mapper.Map<BikePart>(bikePartDTO);
+
+            _bikePartRepository.Add(bikePart);
             return CreatedAtAction(
                 nameof(GetBikePartById),
-                new { id = newBikePart.PartId },
-                newBikePart
+                new { id = bikePart.Id },
+                bikePartDTO
             );
         }
 
@@ -83,7 +92,7 @@ namespace web_rest_hudz_kp21.Controllers
         /// <param name="id">
         /// The ID of the bike part to update.
         /// </param>
-        /// <param name="updatedBikePart">
+        /// <param name="bikePartDTO">
         /// The updated bike part data.
         /// </param>
         /// <returns>
@@ -92,21 +101,16 @@ namespace web_rest_hudz_kp21.Controllers
         /// <response code="204">Successfully updated the bike part.</response>
         /// <response code="404">Bike part not found.</response>
         [HttpPut("{id}")]
-        public IActionResult UpdateBikePart(int id, BikePart updatedBikePart)
+        public IActionResult UpdateBikePart(int id, BikePartDTO bikePartDTO)
         {
-            var bikePart = bikeParts.FirstOrDefault(bp => bp.PartId == id);
+            var bikePart = _bikePartRepository.GetById(id);
             if (bikePart is null)
             {
                 return NotFound();
             }
-
-            bikePart.PartType = updatedBikePart.PartType;
-            bikePart.Description = updatedBikePart.Description;
-            bikePart.Manufacturer = updatedBikePart.Manufacturer;
-            bikePart.Price = updatedBikePart.Price;
-            bikePart.StockQuantity = updatedBikePart.StockQuantity;
-
-            return NoContent();
+            bikePart = _mapper.Map(bikePartDTO, bikePart);
+            _bikePartRepository.Update(bikePart);
+            return Ok(bikePart);
         }
 
         /// <summary>
@@ -123,13 +127,13 @@ namespace web_rest_hudz_kp21.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteBikePart(int id)
         {
-            var bikePart = bikeParts.FirstOrDefault(bp => bp.PartId == id);
+            var bikePart = _bikePartRepository.GetById(id);
             if (bikePart is null)
             {
                 return NotFound();
             }
 
-            bikeParts.Remove(bikePart);
+            _bikePartRepository.Remove(bikePart);
             return NoContent();
         }
     }

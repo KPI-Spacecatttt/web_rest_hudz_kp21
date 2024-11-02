@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
+using web_rest_hudz_kp21.Database;
 using web_rest_hudz_kp21.Models;
+using web_rest_hudz_kp21.Models.DTOs;
 
 namespace web_rest_hudz_kp21.Controllers
 {
@@ -9,13 +12,17 @@ namespace web_rest_hudz_kp21.Controllers
     [Route("api/[controller]")]
     public class BicycleController : ControllerBase
     {
-        private static List<Bicycle> bicycles = [
-            new(1, "Big Trail", "Road", "Merida", 2023, 11.5, 1200.99f, 10),
-            new(2, "Escape", "Mountain", "Giant", 2024, 8.2, 950.00f, 4),
-            new(3, "Range C1", "Enduro", "Norco", 2022, 13.2, 9999.00f, 5),
-            new(4, "V 10 CC", "Mountain", "Santa Cruz", 2023, 15.2,
-                10750.00f, 2)
-        ];
+        private readonly IRepository<Bicycle> _bicycleRepository;
+        private readonly IMapper _mapper;
+
+        public BicycleController(
+            IRepository<Bicycle> bicycleRepository,
+            IMapper mapper
+        )
+        {
+            _bicycleRepository = bicycleRepository;
+            _mapper = mapper;
+        }
 
         /// <summary>
         /// Retrieves a list of all available bicycles.
@@ -24,9 +31,10 @@ namespace web_rest_hudz_kp21.Controllers
         /// Successfully retrieved the list of bicycles.
         /// </response>
         [HttpGet]
-        public ActionResult<IEnumerable<Bicycle>> GetAllBicycles()
+        public ActionResult<IEnumerable<BicycleSummaryDTO>> GetAllBicycles()
         {
-            return Ok(bicycles);
+            var bicycles = _bicycleRepository.GetAll();
+            return Ok(_mapper.Map<IEnumerable<BicycleSummaryDTO>>(bicycles));
         }
 
         /// <summary>
@@ -43,7 +51,7 @@ namespace web_rest_hudz_kp21.Controllers
         [HttpGet("{id}")]
         public ActionResult<Bicycle> GetBicycleById(int id)
         {
-            var bicycle = bicycles.FirstOrDefault(b => b.BicycleId == id);
+            var bicycle = _bicycleRepository.GetById(id);
             if (bicycle is null)
             {
                 return NotFound();
@@ -54,7 +62,7 @@ namespace web_rest_hudz_kp21.Controllers
         /// <summary>
         /// Adds a new bicycle to the collection.
         /// </summary>
-        /// <param name="newBicycle">
+        /// <param name="bicycleDTO">
         /// The new bicycle object to add.
         /// </param>
         /// <returns>
@@ -62,13 +70,15 @@ namespace web_rest_hudz_kp21.Controllers
         /// </returns>
         /// <response code="201">Successfully created the bicycle.</response>
         [HttpPost]
-        public ActionResult<Bicycle> AddBicycle(Bicycle newBicycle)
+        public ActionResult<Bicycle> AddBicycle(BicycleDTO bicycleDTO)
         {
-            bicycles.Add(newBicycle);
+            Bicycle bicycle = _mapper.Map<Bicycle>(bicycleDTO);
+
+            _bicycleRepository.Add(bicycle);
             return CreatedAtAction(
                nameof(GetBicycleById),
-               new { id = newBicycle.BicycleId },
-               newBicycle);
+               new { id = bicycle.Id },
+               bicycleDTO);
         }
 
         /// <summary>
@@ -77,7 +87,7 @@ namespace web_rest_hudz_kp21.Controllers
         /// <param name="id">
         /// The ID of the bicycle to update.
         /// </param>
-        /// <param name="updatedBicycle">
+        /// <param name="bicycleDTO">
         /// The updated bicycle data.
         /// </param>
         /// <returns>
@@ -86,23 +96,17 @@ namespace web_rest_hudz_kp21.Controllers
         /// <response code="204">Successfully updated the bicycle.</response>
         /// <response code="404">Bicycle not found.</response>
         [HttpPut("{id}")]
-        public IActionResult UpdateBicycle(int id, Bicycle updatedBicycle)
+        public IActionResult UpdateBicycle(int id, BicycleDTO bicycleDTO)
         {
-            var bicycle = bicycles.FirstOrDefault(b => b.BicycleId == id);
+            var bicycle = _bicycleRepository.GetById(id);
             if (bicycle is null)
             {
                 return NotFound();
             }
 
-            bicycle.Model = updatedBicycle.Model;
-            bicycle.Type = updatedBicycle.Type;
-            bicycle.Manufacturer = updatedBicycle.Manufacturer;
-            bicycle.ReleaseYear = updatedBicycle.ReleaseYear;
-            bicycle.Weight = updatedBicycle.Weight;
-            bicycle.Price = updatedBicycle.Price;
-            bicycle.StockQuantity = updatedBicycle.StockQuantity;
-
-            return NoContent();
+            bicycle = _mapper.Map(bicycleDTO, bicycle);
+            _bicycleRepository.Update(bicycle);
+            return Ok(bicycle);
         }
 
         /// <summary>
@@ -119,13 +123,13 @@ namespace web_rest_hudz_kp21.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteBicycle(int id)
         {
-            var bicycle = bicycles.FirstOrDefault(b => b.BicycleId == id);
+            var bicycle = _bicycleRepository.GetById(id);
             if (bicycle is null)
             {
                 return NotFound();
             }
 
-            bicycles.Remove(bicycle);
+            _bicycleRepository.Remove(bicycle);
             return NoContent();
         }
 

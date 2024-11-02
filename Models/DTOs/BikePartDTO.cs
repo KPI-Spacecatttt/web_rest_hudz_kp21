@@ -1,11 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace web_rest_hudz_kp21.Models
+namespace web_rest_hudz_kp21.Models.DTOs
 {
-    public class BikePart
+    public class BikePartDTO
     {
-        [Key]
-        public int Id { get; set; }
         public string? PartType { get; set; }
         public string? Description { get; set; }
         public string? Manufacturer { get; set; }
