@@ -12,6 +12,5 @@ namespace web_rest_hudz_kp21.Database
         void Update(T entity);
         void Remove(T entity);
         void RemoveRange(IEnumerable<T> entities);
-
     }
 }

@@ -13,5 +13,4 @@ namespace web_rest_hudz_kp21.Models
             CreateMap<BikePart, BikePartSummaryDTO>();
         }
     }
-
 }

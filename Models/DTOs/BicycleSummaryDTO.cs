@@ -2,6 +2,7 @@ namespace web_rest_hudz_kp21.Models.DTOs
 {
     public class BicycleSummaryDTO
     {
+        public int Id { get; set; }
         public string? Model { get; set; }
         public string? Manufacturer { get; set; }
         public int ReleaseYear { get; set; }
