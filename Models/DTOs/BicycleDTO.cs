@@ -1,11 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace web_rest_hudz_kp21.Models
+namespace web_rest_hudz_kp21.Models.DTOs
 {
-    public class Bicycle
+    public class BicycleDTO
     {
-        [Key]
-        public int Id { get; set; }
         public string? Model { get; set; }
         public string? Type { get; set; }
         public string? Manufacturer { get; set; }
@@ -15,6 +11,3 @@ namespace web_rest_hudz_kp21.Models
         public int StockQuantity { get; set; }
     }
 }
-
-
-
