@@ -8,18 +8,26 @@ namespace web_rest_hudz_kp21.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [ResponseCache(CacheProfileName = "Default20")]
     public class BicycleController : ControllerBase
     {
         private readonly IRepository<Bicycle> _bicycleRepository;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<BicycleController> _logger;
 
         public BicycleController(
             IRepository<Bicycle> bicycleRepository,
-            IMapper mapper
+            IMapper mapper,
+            IConfiguration configuration,
+            ILogger<BicycleController> logger
+
         )
         {
             _bicycleRepository = bicycleRepository;
             _mapper = mapper;
+            _configuration = configuration;
+            _logger = logger;
         }
 
         /// <summary>
@@ -29,10 +37,26 @@ namespace web_rest_hudz_kp21.Controllers
         /// Successfully retrieved the list of bicycles.
         /// </response>
         [HttpGet]
-        public ActionResult<IEnumerable<BicycleSummaryDTO>> GetAllBicycles()
+        public ActionResult<IEnumerable<object>> GetAllBicycles()
         {
+            // Log the request and client IP
+            var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            _logger.LogDebug("[{clientIp}] Getting all bicycles.", clientIp);
+
             var bicycles = _bicycleRepository.GetAll();
-            return Ok(_mapper.Map<IEnumerable<BicycleSummaryDTO>>(bicycles));
+
+            bool showAvailableOnly = _configuration.GetValue<bool>(
+                "BicycleApiSettings:Bicycle:ShowAvailableOnly");
+            if (showAvailableOnly)
+                bicycles = bicycles.Where(x => x.StockQuantity > 0);
+
+            bool showFullInformation = _configuration.GetValue<bool>(
+                "BicycleApiSettings:Bicycle:ShowFullInformation");
+
+            object data = bicycles;
+            if (!showFullInformation)
+                data = _mapper.Map<IEnumerable<BicycleSummaryDTO>>(bicycles);
+            return Ok(data);
         }
 
         /// <summary>
@@ -49,6 +73,10 @@ namespace web_rest_hudz_kp21.Controllers
         [HttpGet("{id}")]
         public ActionResult<Bicycle> GetBicycleById(int id)
         {
+            // Log the request and client IP
+            var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            _logger.LogDebug("[{clientIp}] Getting bicycle by id: {id}.", clientIp, id);
+
             var bicycle = _bicycleRepository.GetById(id);
             if (bicycle is null)
             {
@@ -70,6 +98,10 @@ namespace web_rest_hudz_kp21.Controllers
         [HttpPost]
         public ActionResult<Bicycle> AddBicycle(BicycleDTO bicycleDTO)
         {
+            // Log the request and client IP
+            var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            _logger.LogDebug("[{clientIp}] Adding bicycle.", clientIp);
+
             Bicycle bicycle = _mapper.Map<Bicycle>(bicycleDTO);
 
             _bicycleRepository.Add(bicycle);
@@ -96,6 +128,10 @@ namespace web_rest_hudz_kp21.Controllers
         [HttpPut("{id}")]
         public IActionResult UpdateBicycle(int id, BicycleDTO bicycleDTO)
         {
+            // Log the request and client IP
+            var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            _logger.LogDebug("[{clientIp}] Updating the bicycle with id: {id}.", clientIp, id);
+
             var bicycle = _bicycleRepository.GetById(id);
             if (bicycle is null)
             {
@@ -121,6 +157,10 @@ namespace web_rest_hudz_kp21.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteBicycle(int id)
         {
+            // Log the request and client IP
+            var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            _logger.LogDebug("[{clientIp}] Deleting the bicycle with id: {id}.", clientIp, id);
+
             var bicycle = _bicycleRepository.GetById(id);
             if (bicycle is null)
             {
