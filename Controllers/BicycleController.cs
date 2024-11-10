@@ -1,7 +1,5 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
 using web_rest_hudz_kp21.Database;
 using web_rest_hudz_kp21.Models;
 using web_rest_hudz_kp21.Models.DTOs;
