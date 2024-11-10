@@ -8,6 +8,8 @@ using FluentValidation.AspNetCore;
 using web_rest_hudz_kp21.Validators;
 using web_rest_hudz_kp21.Database.Repositories;
 using AutoMapper;
+using Serilog;
+using Microsoft.AspNetCore.Mvc;
 
 public class Program
 {
@@ -22,19 +24,45 @@ public class Program
         builder.Services.AddScoped<IRepository<Bicycle>, BicycleRepository>();
         #endregion
 
-
         builder.Services.AddDbContext<ApplicationContext>(options =>
             options.UseSqlite(
                 builder.Configuration.GetConnectionString("DefaultConnection")
                 )
             );
 
-
+        #region Validation
         builder.Services.AddAutoMapper(typeof(MappingProfile));
 
         builder.Services.AddValidatorsFromAssemblyContaining<BicycleValidator>();
         builder.Services.AddValidatorsFromAssemblyContaining<BikePartValidator>();
         builder.Services.AddFluentValidationAutoValidation();
+        #endregion
+
+        #region Log
+        Log.Logger = new LoggerConfiguration()
+        .ReadFrom.Configuration(builder.Configuration)
+        .CreateLogger();
+
+        builder.Services.AddLogging(loggingBuilder =>
+        {
+            loggingBuilder.ClearProviders(); //off standard logger
+            loggingBuilder.AddSerilog();
+        });
+        #endregion
+
+
+        //builder.Services.AddDistributedMemoryCache();
+        builder.Services.AddResponseCaching();
+        builder.Services.AddControllers(options =>
+        {
+            options.CacheProfiles.Add("Default20",
+                new CacheProfile()
+                {
+                    Duration = 20,
+                    VaryByQueryKeys = ["*"]
+                });
+        });
+
 
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI
@@ -73,6 +101,8 @@ public class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
+
+        app.UseResponseCaching();
 
         app.UseAuthorization();
 

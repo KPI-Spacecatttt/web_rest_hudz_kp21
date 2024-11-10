@@ -8,17 +8,24 @@ namespace web_rest_hudz_kp21.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [ResponseCache(CacheProfileName = "Default20")]
     public class BikePartController : ControllerBase
     {
         private readonly IRepository<BikePart> _bikePartRepository;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<BicycleController> _logger;
 
         public BikePartController(
             IRepository<BikePart> bikePartRepository,
-            IMapper mapper)
+            IMapper mapper,
+            IConfiguration configuration,
+            ILogger<BicycleController> logger)
         {
             _bikePartRepository = bikePartRepository;
             _mapper = mapper;
+            _configuration = configuration;
+            _logger = logger;
         }
 
         /// <summary>
@@ -34,6 +41,12 @@ namespace web_rest_hudz_kp21.Controllers
         public ActionResult<IEnumerable<BikePartSummaryDTO>> GetAllBikeParts()
         {
             var bikeParts = _bikePartRepository.GetAll();
+
+            bool showAvailableOnly = _configuration.GetValue<bool>(
+                "BicycleApiSettings:BikePart:ShowAvailableOnly");
+            if (showAvailableOnly)
+                bikeParts = bikeParts.Where(x => x.StockQuantity > 0);
+
             return Ok(_mapper.Map<IEnumerable<BikePartSummaryDTO>>(bikeParts));
         }
 
