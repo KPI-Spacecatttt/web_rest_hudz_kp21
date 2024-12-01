@@ -8,7 +8,7 @@ namespace web_rest_hudz_kp21.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [ResponseCache(CacheProfileName = "Default20")]
+    //[ResponseCache(CacheProfileName = "Default20")]
     public class BikePartController : ControllerBase
     {
         private readonly IRepository<BikePart> _bikePartRepository;

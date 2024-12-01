@@ -8,7 +8,7 @@ namespace web_rest_hudz_kp21.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [ResponseCache(CacheProfileName = "Default20")]
+    //[ResponseCache(CacheProfileName = "Default20")]
     public class BicycleController : ControllerBase
     {
         private readonly IRepository<Bicycle> _bicycleRepository;
@@ -37,7 +37,7 @@ namespace web_rest_hudz_kp21.Controllers
         /// Successfully retrieved the list of bicycles.
         /// </response>
         [HttpGet]
-        public ActionResult<IEnumerable<object>> GetAllBicycles()
+        public ActionResult<IEnumerable<BicycleSummaryDTO>> GetAllBicycles()
         {
             // Log the request and client IP
             var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
@@ -50,13 +50,7 @@ namespace web_rest_hudz_kp21.Controllers
             if (showAvailableOnly)
                 bicycles = bicycles.Where(x => x.StockQuantity > 0);
 
-            bool showFullInformation = _configuration.GetValue<bool>(
-                "BicycleApiSettings:Bicycle:ShowFullInformation");
-
-            object data = bicycles;
-            if (!showFullInformation)
-                data = _mapper.Map<IEnumerable<BicycleSummaryDTO>>(bicycles);
-            return Ok(data);
+            return Ok(_mapper.Map<IEnumerable<BicycleSummaryDTO>>(bicycles));
         }
 
         /// <summary>
