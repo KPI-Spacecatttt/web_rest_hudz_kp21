@@ -52,16 +52,18 @@ public class Program
 
 
         //builder.Services.AddDistributedMemoryCache();
-        builder.Services.AddResponseCaching();
-        builder.Services.AddControllers(options =>
-        {
-            options.CacheProfiles.Add("Default20",
-                new CacheProfile()
-                {
-                    Duration = 20,
-                    VaryByQueryKeys = ["*"]
-                });
-        });
+
+        //builder.Services.AddResponseCaching();
+        //builder.Services.AddControllers();
+        //options =>
+        //{
+        //    options.CacheProfiles.Add("Default20",
+        //        new CacheProfile()
+        //        {
+        //            Duration = 20,
+        //            VaryByQueryKeys = ["*"]
+        //        });
+        //});
 
 
         builder.Services.AddControllers();
@@ -102,11 +104,16 @@ public class Program
             app.UseSwaggerUI();
         }
 
-        app.UseResponseCaching();
+        //app.UseResponseCaching();
 
         app.UseAuthorization();
 
         app.MapControllers();
+
+        app.UseCors(builder => builder.WithOrigins("http://localhost:3000")
+           .AllowAnyHeader()
+           .AllowAnyMethod());
+
 
         app.Run();
     }
